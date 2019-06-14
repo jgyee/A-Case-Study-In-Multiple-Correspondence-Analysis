@@ -1,0 +1,1080 @@
+---
+title: "Stats 199 Research"
+author: "Justin Yee"
+date: "April 18, 2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+Goal  of a Question: produce large variability and a large percentage of wrongs; a question that discriminates between students, and figure out why: is the question confusing or something different in the students?
+
+
+Distractors of question will be different ways of being wrong: different answer choices matter; not just right or wrong
+
+Clusters of types of students: What type of questions are they missing? Are they choosing similar responses to other students? Clustering to see this...
+
+
+Psychometrics: Don't want to ask questions if they don't give you additional info
+
+
+
+Clusters of Students vs Clusters of Questions
+
+Which questions are picking up the same kind of knowledge vs unique knowledge
+
+Unique types of students** MOST Interested here
+
+
+Always about 10% of the students who fail
+
+
+HOW TO IDENTIFY AND HELP THE LOWER 10% OF THE CLASS
+
+What do the clicker questions tell about the students in the class?
+
+
+THINGS TO STUDY:
+
+PLACE TO START: used in advertising/marketing *Correspondence Analysis: Pushing multidimentionsal into 2D Graphs,
+*Homols: homogonized alternative least squares: Clusters in categorical data: more sophisticated way of measuring distance between answers
+
+
+Multivariate anlysis in the title for a textbook to look for: Chapter on correspondence analysis: related to PCA, cluster analysis...
+
+
+Biplots: Greenacre
+
+
+Given 3 weeks to buy the clickers
+
+**5 PAGES FOR THE RESEARCH PAPER**
+
+
+
+
+
+Attached is a sample data set that represents responses from one lecture (from Week 2, Lecture 1---there were two lectures per week).  Each lecture has a similar file.  Clicker participation is effectively optional, since the points count for very little and so some students choose to not participate.
+
+Total is total number of questions answered.
+Percentate is the percentage of questions answered
+
+Q2_Key_B:   contains responses for question 2.  The correct answer is B. NV means "no value" which means no response was recorded.
+Q2.2_Key_B:  if a low percent of students got the question right, we discussed it and then answered the question again (and sometimes a third time).  This contains the answers for the second attempt at question 2.  
+Q10_NOKEY: contains responses for question 10, which had no right or wrong answer.  Still, it might be interesting to see if a choice on a "no key" question aligns with students who get more correct than incorrect, or otherwise correlates with a particular type of response on other questions.
+
+
+Some questions I'd like you to consider (on this and on a merge of all clicker questions)
+
+a) Are there groups of students who consistently get questions wrong?
+b) The "best" I can ever get seems to be about 90% correct.  This means that even on questions I consider very easy, 10% get it wrong.  Are those in the 10% just guessing at an answer? Or are they really getting it wrong?
+c) Which questions are hardest?
+d) What happens when we ask questions a second (or third) time?  Are some responses more likely to switch to the correct answer than others?  What percent of correct-answers switch to wrong?
+e) I imagine there is a block of students, probably a fairly large block, that get most questions correct.  How can we identify this block?  What do we learn from their incorrect answers? For example, do they all seem to get the same ones wrong?  If so, do they tend to choose similar wrong answers?  Same thing for the block of students who get most answers incorrect (if a block exists).  What do we learn from their correct answers?
+f) Can you identify "types" of student responses?  In other words, do the responses cluster in some way, and what defines these clusters?
+
+A good place to start is with this fairly small file.  I'm working on anonymizing the files so we can merge them.  However, it seems that some entries in each file will be impossible to match because they didn't register their clickers correctly.
+
+
+
+Hi,
+Attached are the complete data for the project.  My advice for this week is to focus on descriptive statistics (including graphics) and not dive into any modeling just yet, although we can discuss ideas.  Ultimately it would be good to merge the data, but might be best to also study it file by file before going deeper.
+
+Note that the last column contains a unique ID that can be used to merge files.
+
+Finally, note that some students have multiple responses for unknown reasons, but that some of these are clearly not legitimate (mostly if not completely empty.)  They should be deleted.
+
+
+
+
+```{r,echo=FALSE, message=FALSE}
+
+session1.2 <- read.csv("session1.2.csv", header = TRUE)
+
+session2.1 <- read.csv("session2.1.csv", header = TRUE)
+
+session2.2 <- read.csv("session2.2.csv", header = TRUE)
+
+session3.1 <- read.csv("session3.1.csv", header = TRUE)
+
+session6.1 <- read.csv("session6.1.csv", header = TRUE)
+
+session8.1 <- read.csv("session8.1.csv", header = TRUE)
+
+session13 <- read.csv("session13.csv", header = TRUE)
+
+session14 <- read.csv("session14.csv", header = TRUE)
+
+session16 <- read.csv("session16.csv", header = TRUE)
+
+session17 <- read.csv("session17.csv", header = TRUE)
+
+#Merging the data based on key 'researchID'
+
+ full_data <- plyr::join_all(list(session1.2, session2.1,session2.2,
+ session3.1, session6.1, session8.1, session13,
+session14, session16, session17), by = "researchID", type = "full")
+ 
+ 
+
+
+```
+
+
+
+Merging the data based on key 'researchID'
+```{r}
+library(dplyr)
+library(purrr)
+library(reshape)
+library(reshape2)
+library(tidyverse)
+library(tidyr)
+#Testing a full merge with the key = one column
+
+sample <- data.frame(one = factor(c("a","b","c","d")), two = factor(c("1","2","3","4")))
+
+sample2 <- data.frame(one = factor(c("b")), two = factor(c("1")), three = factor(c("5")))
+  
+sample3 <- data.frame(one = c("a","c"), two = c("1","2"), three = c("1","2"), four = c("1","2"))  
+
+#total_data <- merge_all(dfs = list(sample,sample2), by = "one")
+
+total_data2 <- list(sample,sample2,sample3) %>% reduce(full_join, by = "one")
+
+total_data3 <- list(sample3,sample2,sample) %>% reduce(full_join, by = "two")
+
+#Real Merge - I figured out the problem - Multiple IDS in each sheet, must filter
+total_data <- list(session1.2, session2.1,session2.2,
+ session3.1, session6.1, session8.1, session13,
+session14, session16, session17) %>% reduce(full_join, by = "researchID")
+
+
+nrow(total_data[total_data$researchID=="ab70",])
+
+test_data <- full_join(session1.2,session2.1, by = "researchID")
+
+
+#I want the column with the least amount of NV responses: filter the total data
+#Want to look at each unique ID rows, then perform summation of NV count row wise
+uniqueID <- unique(total_data$researchID)
+
+uniqueID <- uniqueID[order(uniqueID)]
+
+matrix_total <- as.matrix(total_data)
+
+logical_matrix <- matrix_total == "NV"
+
+count_matrix <- apply(logical_matrix,1,sum,na.rm=TRUE)
+
+#total_count is a dataframe now has the column name count_matrix which counts the number of NV vals
+total_count <- as.data.frame(cbind(matrix_total,count_matrix))
+
+total_count$count_matrix <- as.integer(total_count$count_matrix)
+
+#Returns the minimum number of NV's for a unique researchID
+min_NV <- total_count %>% group_by(researchID) %>% summarise(min = min(count_matrix,na.rm=TRUE))
+  
+clean_total2 <- data.frame()
+
+#Now the uniqueIDs match with the min_NV tibble
+for(i in 1:61){
+  #For every uniqueID, return the row with the min_NV
+  clean_total <- total_count[total_count$researchID==uniqueID[i],] %>% filter(count_matrix ==  min_NV$min[i])
+  
+  clean_total2 <- rbind(clean_total2,clean_total)
+}
+
+
+#clean_total2 is the best result so far: Now down to 88 observations, just need to look at the duplicates  
+#There is an issue of there being multiple answers for a single type of question
+#write.csv(clean_total2,file = "total_data.csv")
+
+#Looking at the non-duplicates only
+
+freq_df <- data.frame(table(clean_total2$researchID))
+
+#gives names of the non-duplicates, subsets clean_total2
+clean_no_dup <- clean_total2 %>% filter(researchID %in%  freq_df$Var1[which(freq_df$Freq==1)])
+
+
+
+
+```
+
+
+Now, we will work with clean_no_dup...
+Check with Others: 97 total questions, 50 no-dup students
+```{r, results='asis'}
+#Use regex to get the correct answers
+library(stringr)
+library(ggplot2)
+library(knitr)
+library(xtable)
+library(stargazer)
+library(gridExtra)
+
+clean_total2<-read.csv("total_data.csv", header=TRUE)
+#Looking at the non-duplicates only
+freq_df <- data.frame(table(clean_total2$researchID))
+
+#gives names of the non-duplicates, subsets clean_total2
+clean_no_dup <- clean_total2 %>% filter(researchID %in%  freq_df$Var1[which(freq_df$Freq==1)])
+
+
+#Getting rid of unneccessary columns
+clean_no_dup <- clean_no_dup[,c(8,118, which( clean_no_dup %>% names() %>% str_extract(pattern = "Q") =="Q"))]
+
+#Tidying to Group by Question Difficulty
+clean_no_dup_tidy <- clean_no_dup %>% gather("Question","Response",-c(1,2))
+
+clean_no_dup_tidy$Response <- factor(clean_no_dup_tidy$Response, levels = c("A","B","C","D","E","NV"))
+
+clean_no_dup_tidy$Question <- factor(clean_no_dup_tidy$Question)
+
+#Key = B indices for tidy data
+
+correct_total_vector<- rep(NA,4850)
+
+correct_total_vector[which( clean_no_dup_tidy$Question %>% str_extract(pattern = "A") == "A")] <- "A"
+
+correct_total_vector[which( clean_no_dup_tidy$Question %>% str_extract(pattern = "B") == "B")] <- "B"
+
+correct_total_vector[which( clean_no_dup_tidy$Question %>% str_extract(pattern = "C") == "C")] <- "C"
+
+correct_total_vector[which( clean_no_dup_tidy$Question %>% str_extract(pattern = "D") == "D")] <- "D"
+
+correct_total_vector[which( clean_no_dup_tidy$Question %>% str_extract(pattern = "_E") == "_E")] <- "E"
+
+correct_total_vector[which( clean_no_dup_tidy$Question %>% str_extract(pattern = "yE") == "yE")] <- "E"
+
+table(clean_no_dup_tidy$Response)
+
+#Total percent correct across All Questions and All Students = 51.87%
+mean(correct_total_vector == clean_no_dup_tidy$Response, na.rm = TRUE)
+
+
+#Total Percent Correct For Each Question
+total_percent_correct <- data.frame(percent_correct = c(rep(NA,97)))
+
+temp_total<- c()
+for(i in seq(from = 50, to = 4850,by = 50)){
+  temp_total[i] <- mean((correct_total_vector == clean_no_dup_tidy$Response)[(i-49):i],na.rm=TRUE)
+}
+
+
+temp_total<- temp_total[!(is.na(temp_total) & !is.nan(temp_total))]
+
+total_percent_correct$percent_correct <- temp_total
+
+#Now we have a dataframe for the percent correct for each question
+total_percent_correct <- total_percent_correct %>% mutate(Question = unique(clean_no_dup_tidy$Question))
+
+#Bar Plot revealing question difficulty
+library(RColorBrewer)
+
+colourCount = length(unique(clean_no_dup_tidy$Question))
+getPalette = colorRampPalette(brewer.pal(9, "Blues"))
+ 
+total_percent_correct <- total_percent_correct %>% arrange(percent_correct)
+
+
+total_percent_correct$Question <- factor(total_percent_correct$Question, levels = total_percent_correct$Question[order(total_percent_correct$percent_corre)])
+
+
+plot1 <- ggplot(data = total_percent_correct, aes(x = Question, y = percent_correct, fill = Question)) + geom_bar(stat='identity', position = "dodge")+theme(legend.position = "none")+theme(axis.title.x=element_text(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + ylab(label="Percent Correct") + ggtitle("Each Question's Difficulty")+
+  scale_fill_manual(values = rep(c('#deebf7','#9ecae1','#3182bd'), 33, drop = FALSE))
+
+
+#Density Plot of Question Difficulty
+plot2 <- ggplot(data = total_percent_correct, aes(x=percent_correct, color = "darkorange")) + geom_density()+ ggtitle("Distribution of Question Difficulty")+theme(legend.position = "none")
+
+
+grid.arrange(plot1,plot2)
+
+#Histogram of Question Difficulty
+ggplot(data = total_percent_correct, aes(x=percent_correct)) + geom_histogram() 
+
+
+
+##Summary Stats by Question
+
+mean(total_percent_correct$percent_correct,na.rm=TRUE)
+
+sd(total_percent_correct$percent_correct,na.rm=TRUE)
+
+summary(total_percent_correct$percent_correct,na.rm=TRUE)
+
+
+stargazer(total_percent_correct[1,])
+
+stargazer(total_percent_correct$percent_correct,na.rm=TRUE)
+
+stargazer(total_percent_correct)
+
+```
+
+Now, we will look at the total data with respective to grouping by student
+```{r, results='asis'}
+#SUBSET EXAMPLE #########################################################
+
+#Percent Correct Overall from Question Arrangement
+mean(correct_total_vector == clean_no_dup_tidy$Response, na.rm = TRUE)
+
+
+clean_no_dup_student <- clean_no_dup_tidy %>% arrange(researchID)
+
+correct_total_vector2 <- rep(NA,4850)
+
+correct_total_vector2[which( clean_no_dup_student$Question %>% str_extract(pattern = "A") == "A")] <- "A"
+
+correct_total_vector2[which( clean_no_dup_student$Question %>% str_extract(pattern = "B") == "B")] <- "B"
+
+correct_total_vector2[which( clean_no_dup_student$Question %>% str_extract(pattern = "C") == "C")] <- "C"
+
+correct_total_vector2[which( clean_no_dup_student$Question %>% str_extract(pattern = "D") == "D")] <- "D"
+
+correct_total_vector2[which( clean_no_dup_student$Question %>% str_extract(pattern = "_E") == "_E")] <- "E"
+
+correct_total_vector2[which( clean_no_dup_student$Question %>% str_extract(pattern = "yE") == "yE")] <- "E"
+
+
+
+#Percent Correct Overall from Student arrangement check YES
+mean(correct_total_vector2 == clean_no_dup_student$Response, na.rm = TRUE)
+
+
+#New Student every 16 rows, 47 students total
+
+
+temp_total_student<- c()
+for(i in seq(from = 97, to = 4850,by = 97)){
+  temp_total_student[i] <- mean((correct_total_vector2 == clean_no_dup_student$Response)[(i-96):i],na.rm=TRUE)
+}
+
+percent_correct_student_total<-data.frame(percent_correct=c(rep(NA,50)),student=unique(clean_no_dup_student$researchID))
+
+percent_correct_student_total$percent_correct<- temp_total_student[c(which(!is.na(temp_total_student)), which(is.nan(temp_total_student)))[order(c(which(!is.na(temp_total_student)), which(is.nan(temp_total_student))))]]
+  
+  
+#percent_correct_student is correct by checking the first student (correct_vector2 == session2.1_tidy_student$Response)[1:16]
+
+
+percent_correct_student_total$student <- factor(percent_correct_student_total$student, levels = percent_correct_student_total$student[order(percent_correct_student_total$percent_correct)])
+
+#Bar plot revealing student level
+studentbarplot1 <- ggplot(data = percent_correct_student_total, aes(x = student, y = percent_correct, fill = student)) + geom_bar(stat='identity', position = position_dodge(width = 200))+theme(legend.position = "none")+theme(axis.title.x=element_text(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + ylab(label="Percent Correct") + ggtitle("Each Student's Overall Score")+
+  scale_fill_manual(values = rep(c('#deebf7','#9ecae1','#3182bd'), 33, drop = FALSE))
+  
+
+#Density Plot of Student Levels
+studentdensityplot <- ggplot(data = percent_correct_student_total, aes(x=percent_correct, col = "darkorange")) + geom_density()+theme(legend.position = "none")
+
+grid.arrange(studentbarplot1,studentdensityplot)
+
+#Histogram of Student Levels
+ggplot(data = percent_correct_student_total, aes(x=percent_correct)) + geom_histogram()
+
+
+
+
+mean(percent_correct_student_total$percent_correct)
+
+sd(percent_correct_student_total$percent_correct)
+
+summary(percent_correct_student_total$percent_correct)
+
+stargazer(percent_correct_student_total)
+
+
+```
+
+
+```{r}
+#Looking at the count of NA responses in students and in questions
+
+#By Question
+#Creating new logical column if NA response or not
+question_na <- clean_no_dup_tidy %>% group_by(Question) %>% mutate(N_A = is.na(Response))
+
+question_na <- question_na %>% group_by(Question) %>% mutate(N_A_count = sum(N_A))
+
+question_na_count <- distinct(question_na, Question, N_A_count)
+
+question_na_count$Question <- factor(question_na_count$Question, levels = question_na_count$Question[order(question_na_count$N_A_count)])
+
+#By Student
+student_na <- ungroup(question_na) %>% select(-N_A_count)
+
+student_na <- student_na %>% group_by(researchID) %>% mutate(N_A_count = sum(N_A))
+
+student_na_count <- distinct(student_na, researchID, N_A_count) %>% arrange(N_A_count)
+
+
+student_na_count$researchID <- factor(student_na_count$researchID, levels = student_na_count$researchID[order(student_na_count$N_A_count)])
+
+
+#Bar Plots
+question_NA_plot <- ggplot(data = question_na_count, aes(x = Question, y = factor(N_A_count), fill = Question))+geom_bar(stat = "identity")+scale_fill_manual(values = rep(c('#deebf7','#9ecae1','#3182bd'), 33, drop = FALSE)) +theme(legend.position = "none")+theme(axis.title.x=element_text(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + ylab(label="NA count") + ggtitle("Each Question's NA Count")
+
+
+
+student_NA_plot <- ggplot(data = student_na_count, aes(x = researchID, y = factor(N_A_count), fill = researchID))+geom_bar(stat = "identity")+scale_fill_manual(values = rep(c('#deebf7','#9ecae1','#3182bd'), 33, drop = FALSE)) +theme(legend.position = "none")+theme(axis.title.x=element_text(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + ylab(label="NA count") + ggtitle("Each Student's NA Count")
+
+
+grid.arrange(question_NA_plot, student_NA_plot)
+
+
+#Looking at students with 20 or more NA_count
+#12 students
+most_na_student <- student_na_count %>% filter(N_A_count >= 20)
+
+
+```
+
+AGNES cluster analysis
+- Aglomerrative Nesting
+- similar to K-means
+
+Knot testing: Indicator variables: Chapter on splines
+
+spaghetti plots in r
+
+Transition Matrixes on repeated questions
+
+
+
+Correspondence Analysis Exploration
+
+```{r}
+#Package FactoMineR
+#clean_no_dup2 is the dataset with all questions as variables and count of NVs column
+
+
+library(FactoMineR)
+library(factoextra)
+
+
+res<- MCA(clean_no_dup[,c(-1,-2)])
+
+#summary(res)
+
+plot(res, label = "none")
+
+par(mfrow=c(1,2))
+plot(res, invisible = c("var"),autoLab = "y")
+plot(res, invisible = c("ind"),label="none")
+
+plotellipses(res, keepvar= c(1:3,5))
+
+plotellipses(res, keepvar= c(1,30,48,90))
+
+
+
+fviz_screeplot(res)
+
+#Gives coordinates for the individual students of the first 5 dimensions from MCA
+km<- data.frame(res$ind$coord)
+
+groupes.kmeans<- kmeans(km,centers = 5,nstart =5)
+
+fviz_cluster(groupes.kmeans, data = km, palette = "jco", repel= TRUE, main = "Kmeans", ggtheme = theme_classic())
+
+library(sjPlot)
+
+sjc.elbow(km,steps=20,show.diff = T)
+
+hier<- HCPC(res,nb.clust=-1)
+
+par(mfrow=c(2,1))
+plot(hier, choice=c("3D.map, tree, bar"))
+
+
+# Total contribution to dimension 1 and 2
+fviz_contrib(res, choice = "var", axes = 1, top = 60)
+
+fviz_mca_var(res, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE, # avoid text overlapping (slow)
+             ggtheme = theme_minimal()
+             )
+
+var <- get_mca_var(res)
+
+#The 16 Questions with the highest contribution to dimension 1
+#They all have the same contribution -- why?
+
+library(stringr)
+
+most_contribution <- head(sort(var$contrib[,1], decreasing = TRUE),16)
+
+most_contribution<- unlist(strsplit(names(most_contribution), split = ".NA"))
+```
+
+```{r}
+#All The Questions That were Repeated
+#index 34 is Q1.2_KEY_A, goes with #21 but was not seen among other questions, index 77 is Q1.2KeyC, goes with 92
+
+Repeated_Questions <- clean_no_dup_student$Question[c(6:7,8:10,16:17,23:24,25:26,30:31,32:33,35:36,56:57,61:62,67:68,70:71,74:75,82:83,85:87,89:90,93:94, 21,34, 77, 92)]
+
+First_time <- clean_no_dup_student$Question[c(6,8,16,23,25,30,32,35,56,61,67,70,74,82,85,89,93,21,77)]
+
+First_repeat <- clean_no_dup_student$Question[c(7,9,17,24,26,31,33,36,57,62,68,71,75,83,86,90,94,34,92)]
+
+Second_repeat <- clean_no_dup_student$Question[c(10,87)]
+  
+#Proportion of Repeated Questions in Total
+length(Repeated_Questions)/nrow(total_percent_correct)
+
+#Proportion of Repeated Questions in Most Contribution
+Repeated_contr_df <- data.frame( Type = c("Out of Highest Contribution","Out of Total"), Proportion = c(mean(most_contribution %in% Repeated_Questions),length(Repeated_Questions)/nrow(total_percent_correct)) )
+
+
+ggplot(Repeated_contr_df, aes(x = Type, y = Proportion, fill = Type)) + geom_bar(stat="identity")
+
+
+#A Big Difference -- tells us that the variation can be mostly contributed to the repeated questions
+
+
+
+
+```
+
+```{r}
+#Trying CA function instread of MCA for FactoMineRlibrary(FactoMineR)
+library(factoextra)
+
+
+#res<- CA(clean_no_dup[,c(-1,-2)])
+
+#summary(res)
+
+#plot(res)
+#plot(res, invisible = c("var"),autoLab = "y")
+#plot(res, invisible = c("ind"),label="none")
+
+
+#fviz_screeplot(res)
+
+#Gives coordinates for the individual students of the first 5 dimensions from MCA
+km<- data.frame(res$ind$coord)
+
+groupes.kmeans<- kmeans(km,centers = 5,nstart =5)
+
+fviz_cluster(groupes.kmeans, data = km, palette = "jco", repel= TRUE, main = "Kmeans", ggtheme = theme_classic())
+
+library(sjPlot)
+
+sjc.elbow(km,steps=20,show.diff = T)
+
+hier<- HCPC(res,nb.clust=-1)
+
+plot(hier, choice=c("3D.map, tree, bar"))
+
+
+```
+
+```{r}
+library(dplyr)
+
+hierarchal_cluster <- data.frame(student = clean_no_dup[,1])
+
+hierarchal_cluster
+
+hierarchal_cluster<- cbind(hierarchal_cluster, cluster = hier$data.clust[,"clust"])
+
+
+correct_cluster <- full_join(percent_correct_student_total, hierarchal_cluster, by = 'student')
+
+
+mean_correct_clust <-correct_cluster %>% group_by(cluster) %>% summarise(mean_correct = mean(percent_correct))
+
+mean_correct_clust
+
+#Create histograms facet_wrap by ggplot
+
+ggplot(correct_cluster,aes(x=(percent_correct), fill=cluster)) + geom_histogram(stat="bin", alpha = 0.7) 
+
+#Density plots
+correct_plot <- ggplot(correct_cluster, aes(x = percent_correct, color = cluster)) + geom_density()
+
+#Density Plot of Question Difficulty
+# plot2 <- ggplot(data = total_percent_correct, aes(x=percent_correct, color = "darkorange")) + geom_density()+ ggtitle("Distribution of Question Difficulty")+theme(legend.position = "none")
+
+
+
+#Looking at the most NA students versus the clusters
+most_na_student
+hierarchal_cluster
+student_na_count
+
+na_cluster_most <- hierarchal_cluster %>% filter(student %in% most_na_student$researchID)
+
+
+na_cluster <- full_join(hierarchal_cluster, student_na_count, by = c("student"= "researchID"))
+
+mean_na_cluster <- distinct(na_cluster %>% group_by(cluster) %>% mutate(Mean_NA = mean(N_A_count)), cluster, Mean_NA)
+
+na_plot <- ggplot(mean_na_cluster, aes(x = cluster, y = Mean_NA, fill = cluster))+ geom_bar(stat = "identity")
+
+grid.arrange(correct_plot, na_plot)
+
+```
+
+
+```{r}
+#Now, let's look at the correlations between the clusters
+
+
+#Shannon's Entropy - Information thoery
+library(DescTools)
+#Entropy()
+#MutInf()
+
+
+#Splitting the Repeat Questions into 3 groups
+#First_time
+#First_repeat
+#Second_repeat
+
+
+Entropy_Q_vector<- numeric(length(3:99))
+
+for(i in 3:ncol(clean_no_dup)){
+  Entropy_Q_vector[i-2] <- Entropy(table(clean_no_dup[,i]))
+}
+
+
+Entropy_Q_df <- data.frame(Entropy = Entropy_Q_vector, Question = names(clean_no_dup)[3:99])  
+
+
+ggplot(Entropy_Q_df,aes(x = Question, y = Entropy)) + geom_bar(stat = 'identity')
+
+
+#Stat summary for Entropy of All Q's
+summary(Entropy_Q_vector)
+
+#Stat Summary for Entropy of Repeated Q's
+Entropy_Rep_Q <- Entropy_Q_df %>% filter(Question %in% Repeated_Questions) 
+summary(Entropy_Rep_Q[,1])
+
+#Stat Summary for Entropy of Most Contrib to Dim 1
+Entropy_Most_Cont_Q <- Entropy_Q_df %>% filter(Question %in% most_contribution) 
+summary(Entropy_Most_Cont_Q[,1])
+
+#Stat Summary for Entropy of First_time
+Entropy_First_Q <- Entropy_Q_df %>% filter(Question %in% First_time) 
+summary(Entropy_First_Q[,1])
+
+#Stat Summary for Entropy of First_repeat
+Entropy_First_R <- Entropy_Q_df %>% filter(Question %in% First_repeat) 
+summary(Entropy_First_R[,1])
+
+#Stat Summary for Entropy of Second_repeat
+Entropy_Second_R <- Entropy_Q_df %>% filter(Question %in% Second_repeat) 
+summary(Entropy_Second_R[,1])
+
+
+#Creating df and plot to compare Entropy and Repeat Question Group
+Entropy_Rep_Q <- Entropy_Rep_Q %>% mutate(Type = NA)
+
+Entropy_Rep_Q$Type[Entropy_Rep_Q$Question %in% First_time] <- "First_time"
+
+Entropy_Rep_Q$Type[Entropy_Rep_Q$Question %in% First_repeat] <- "First_repeat"
+
+Entropy_Rep_Q$Type[Entropy_Rep_Q$Question %in% Second_repeat] <- "Second_repeat"
+
+Mean_Entropy_Type <- Entropy_Rep_Q %>% group_by(Type) %>% summarise(Mean_Entropy = mean(Entropy)) 
+
+Mean_Entropy_Type <- Mean_Entropy_Type[c(2,1,3),]
+
+
+
+Mean_Entropy_Type$Type <- factor(Mean_Entropy_Type$Type, levels = c("First_time","First_repeat","Second_repeat"))
+
+
+ggplot(Mean_Entropy_Type, aes(x = Type, y = Mean_Entropy, fill = Type)) + geom_bar(stat='identity')
+
+
+ggplot(Entropy_Rep_Q, aes(x = Question, y = Entropy, fill = Type))+ geom_bar(stat="identity")
+
+
+
+#Creating df and plot to compare Percent_Correct and Repeat Question Group
+
+
+
+
+
+#Start by seeing how many questions they actually answered -- look at number of NV's
+
+clean_clust <- full_join(clean_no_dup, hierarchal_cluster, by = c("researchID"= "student"))
+
+ggplot(clean_clust, aes(count_matrix, fill = cluster, alpha = 0.7)) + geom_histogram()
+
+```
+
+```{r, results = 'asis'}
+#Next, look at the actual correlations between each other: 1 for same answers, 0 for different answers
+
+
+
+#Look up if there is an easy way to measure correlations between categorical variables
+#Cramer's V Derived from the Chi-Squared Test of Independence of Categorical Variables -- We are interested in students as the variables
+
+#DO == to rowwise() of clean_clust and compute the mean as a measure of "correlation" between students
+
+
+
+#Output will be a matrix of 'correlation' coefficients ranging from 0 to 1
+
+#Test works
+mean (as.character(clean_no_dup[1,3:99]) == as.character(clean_no_dup[2,3:99]) ) 
+
+#Huge 50 by 50 matrix for loop
+
+proportion_exactness <- matrix(nrow=50,ncol=50)
+
+
+for(i in 1:50){
+  for(j in 1:50){
+    proportion_exactness[i,j] <- mean (as.character(clean_no_dup[i,3:99]) == as.character(clean_no_dup[j,3:99]) )
+  }
+}
+
+#To test if the matrix is correct-- CORRECT
+mean (as.character(clean_no_dup[1,3:99]) == as.character(clean_no_dup[2,3:99]) )== proportion_exactness[1,2]
+
+
+#Trying out the 2nd highest function
+x <- c(1:10)
+n <- length(x)
+sort(x,partial=n-1)[n-1]
+
+#Writing a manual function to insert to apply
+
+second_highest <- function(df){
+  n <- length(df)
+  sort(df,partial=n-1)[n-1]
+}
+
+#Trying out the second_highest function -- CHECK
+second_highest(x)
+
+#Now, find the highest 50 values by row -- need to subset out the '1's
+
+highest_sim <- apply(proportion_exactness, MARGIN = 1, second_highest)
+
+
+#Now getting the assignments of students, while also filtering out the 1's
+
+column_vector <- numeric(50)
+  
+for(i in 1:50){
+  
+  column_vector[i]<- which(proportion_exactness[i,] == second_highest(proportion_exactness[i,])  )
+  
+}
+
+#Check that these are the correct assignments -- CHECK
+
+truth_vector <- numeric(50)
+
+
+for(i in 1:50){
+  truth_vector[i] <- proportion_exactness[i,column_vector[i]]
+}
+
+all(truth_vector == highest_sim)
+
+
+pair_df <- data.frame(row = 1:50, column = column_vector, proportion = highest_sim)
+
+pair_df <- pair_df  %>% arrange(desc(proportion))
+
+
+head(pair_df)
+#Pairs with Highest Proportions: (24, 16), (4,43), (5,43), (32,23)
+
+table(clean_no_dup_tidy %>% group_by(researchID) %>% select(Response))
+
+#Looking at the pairs that are also in the same cluster: cluster2: 11,12,15,23,31,32,50 
+# (50,11), (32,23), (11,23), (15,12), (31,23), (32,23): ALL SHARE SAME Cluster : RED
+
+#Cluster 3: 16,24,25,38
+#(24,16), (25,16), (38,16): ALL SHARE SAME CLUSTER : GREEN
+
+stargazer(tail(pair_df, 48), summary=FALSE, rownames=FALSE)
+
+
+#Interesting pairs to look at: (4,43), (5,43), (44,5), (45,5), (1,5), (2,43), NV's: (36,45), (40,4): All over 70 percent match, and not just a bunch of NA/NV responses
+
+
+percent_correct_student_total[4,]$percent_correct - percent_correct_student_total[43,]$percent_correct
+
+percent_correct_student_total[5,]$percent_correct - percent_correct_student_total[43,]$percent_correct
+
+percent_correct_student_total[4,]$percent_correct - percent_correct_student_total[45,]$percent_correct
+
+percent_correct_student_total[5,]$percent_correct - percent_correct_student_total[45,]$percent_correct
+
+#Big difference between 1 and 5
+percent_correct_student_total[5,]$percent_correct - percent_correct_student_total[1,]$percent_correct
+
+percent_correct_student_total[2,]$percent_correct - percent_correct_student_total[43,]$percent_correct
+
+
+
+
+```
+
+
+
+```{r}
+library(ca)
+
+#ca from ca package example
+data("author")
+ca(author)
+plot(ca(author))
+
+
+#Example from documentation for CA
+data(children)
+res.ca <- CA (children, row.sup = 15:18, col.sup = 6:8)
+summary(res.ca)
+## Ellipses for all the active elements
+ellipseCA(res.ca)
+## Ellipses around some columns only
+ellipseCA(res.ca,ellipse="col",col.col.ell=c(rep("blue",2),rep("transparent",3)),
+     invisible=c("row.sup","col.sup"))
+
+
+
+#Multiple CA with CA package
+#mjca
+
+data("wg93")
+mjca(wg93[,1:4])
+plot(mjca(wg93[,1:4]))
+
+
+data(UCBAdmissions)
+mjca(UCBAdmissions)
+plot(mjca(UCBAdmissions))
+
+
+
+#Package By Nenadine and Greenacre
+# library(ca)
+# 
+# #EXAMPLE ###############
+# #Where A and B are categorical factors
+# # Correspondence Analysis
+# library(ca)
+ # mytable <- with(mydata, table(A,B)) # create a 2 way table
+ # prop.table(mytable, 1) # row percentages
+ # prop.table(mytable, 2) # column percentages
+ # fit <- ca(mytable)
+ # print(fit) # basic results
+ # summary(fit) # extended results
+ # plot(fit) # symmetric map
+ # plot(fit, mass = TRUE, contrib = "absolute", map =
+ #   "rowgreen", arrows = c(FALSE, TRUE)) # asymmetric map
+
+#############################
+
+
+```
+
+**Questions:**
+
+Focusing on session 2.1
+
+Maually cleaning data via excel
+
+Starting with the session2.1 file only first. Questions before merging: What type of merge?
+What to do with the multiple ID's appearing, the "Total" column, and the percentage column
+seems incorrect as well....
+
+
+If we group the data by researchID:
+Do we have to relabel the variables by session # as well to keep track of which questions are asked?
+
+dplyr: we can do group_by(Question) to see how students across the board fared on particular questions
+
+Reading in the data
+
+The way the data was collected: Were questions not asked for every session the class met?
+How many answer choices per question? Is it the same number of choices per question or does it vary?
+I saw some 'E' responses...
+
+
+How does the 'Total' column work? Only seems to be recording a 0 or a 2, regardless of the number of questions answered.
+
+I wasn't too sure for the multiple ID's appearing... So I manually began to remove them for cleaning.
+
+case of ca62 researchID: 3 rows, 2 blanks, 1 3 answers, rest blank?
+Removed the 2 blanks rows, kept the 3 answers, rest blank row.
+
+Removed the 3 NA values for the researchID's in the last 3 rows.
+
+How many individual students were registered to take this class? Were any added on after the start?
+This could help us answer these questions we have about the data.
+
+Why are some question numbers skipped?
+
+47 unique ID's
+
+**Insights from the histograms**
+This graph reveals the most difficult answer to be Question 2. What seems strange is that upon answering the questions a 2nd or 3rd time, the students seem to be getting a worse score(e.g. Questions 2 and 4).
+
+Upon first glance, it seems that even when there is no correct answer(No Key Questions), the students tend to all select the same answer.
+
+```{r, echo = FALSE, message = FALSE}
+session2.1 <- read.csv("session2.1.csv", header = TRUE)
+
+
+library(tidyr)
+library(dplyr)
+
+session2.1_tidy <- session2.1 %>% gather("Question","Response",-c(1,2,19))
+
+session2.1_tidy$Response <- factor(session2.1_tidy$Response, levels = c("A","B","C","D","E","NV"))
+
+session2.1_tidy$Question <- factor(session2.1_tidy$Question)
+
+str(session2.1_tidy)
+
+
+library(ggplot2)
+
+correct_responses <- data.frame(Correct_Response = c(3,0,5,0,0,0,1,1,2,2,2,2,2,2,0,0), Question = levels(session2.1_tidy$Question))
+
+#Histogram of Responses for Each Question
+#Labeling the correct answers on the histograms with a line
+
+ggplot(session2.1_tidy, aes(x = Response)) + geom_histogram(stat="count") + geom_vline(aes(xintercept = Correct_Response),data = correct_responses)+ facet_wrap(~Question) 
+
+
+```
+
+
+Additional Exploration:
+
+Try to find percentages of the correct answer for each Question
+
+
+
+```{r, echo = FALSE, message=FALSE}
+#47 responses for each Question
+table(session2.1_tidy$Question)
+
+#Most common answer is B
+table(session2.1_tidy$Response)
+
+correct_vector <- c(rep("C",47),rep("B",47*5),rep(NA,47*3),rep("E",47),rep(NA,47*3),rep("A",47*2),rep("B",47))
+
+
+#Overall Correct Answers
+mean(correct_vector == session2.1_tidy$Response, na.rm = TRUE)
+
+
+#Percent Correct For Each Question
+mean((correct_vector == session2.1_tidy$Response)[1:47],na.rm=TRUE)
+
+mean((correct_vector == session2.1_tidy$Response)[48:94],na.rm = TRUE)
+
+mean((correct_vector == session2.1_tidy$Response)[95:141],na.rm=TRUE)
+
+percent_correct <- data.frame(percent_correct = c(rep(NA,16)))
+
+temp<- c()
+for(i in seq(from = 47, to = 752,by = 47)){
+  temp[i] <- mean((correct_vector == session2.1_tidy$Response)[(i-46):i],na.rm=TRUE)
+}
+
+percent_correct$percent_correct<- c(temp[47],temp[94],temp[141],temp[188],temp[235],temp[282],temp[329],
+                                    temp[376],temp[423],temp[470],temp[517],temp[564],temp[611],temp[658],temp[705],temp[752])
+
+percent_correct <- percent_correct %>% mutate(Question = unique(session2.1_tidy$Question))
+
+#Bar plot revealing question difficulty
+ggplot(data = percent_correct, aes(x = Question, y = percent_correct)) + geom_bar(stat='identity', position = "dodge") + scale_x_discrete(labels= c('Q1','Q10NK','Q13','Q14NK','Q15.2NK','Q15NK','Q18','Q19A','Q19B',"Q2.2","Q2","Q4.2","Q4.3","Q4","Q8NK","Q9NK"))
+
+
+#Histogram of Question Difficulty
+ggplot(data = percent_correct, aes(x=percent_correct)) + geom_histogram()
+
+#Density Plot of Question Difficulty
+ggplot(data = percent_correct, aes(x=percent_correct)) + geom_density()
+
+```
+
+
+Analysis by Student:
+
+Try to find percentages of the correct answer for each Student
+
+
+```{r}
+
+#Percent Correct Overall from Question Arrangement
+mean(correct_vector == session2.1_tidy$Response, na.rm = TRUE)
+
+
+correct_vector2 <- c(rep(c("C","B","B","B","B","B",NA,NA,NA,"E",NA,NA,NA,"A","A","B"),47))
+session2.1_tidy_student <- session2.1_tidy %>% arrange(researchID)
+
+
+#Percent Correct Overall from Student arrangement check YES
+mean(correct_vector2 == session2.1_tidy_student$Response, na.rm = TRUE)
+
+
+#New Student every 16 rows, 47 students total
+
+
+temp<- c()
+for(i in seq(from = 16, to = 752,by = 16)){
+  temp[i] <- round(mean((correct_vector2 == session2.1_tidy_student$Response)[(i-15):i],na.rm=TRUE), digits = 4)
+}
+
+percent_correct_student<-data.frame(percent_correct=c(rep(NA,47)),student=unique(session2.1_tidy_student$researchID))
+
+percent_correct_student$percent_correct<- temp[c(which(!is.na(temp)), which(is.nan(temp)))[order(c(which(!is.na(temp)), which(is.nan(temp))))]]
+  
+  
+#percent_correct_student is correct by checking the first student (correct_vector2 == session2.1_tidy_student$Response)[1:16]
+
+
+#Bar plot revealing student level
+ggplot(data = percent_correct_student, aes(x = student, y = percent_correct)) + geom_bar(stat='identity', position = position_dodge(width = 200))
+  
+#Histogram of Student Levels
+ggplot(data = percent_correct_student, aes(x=percent_correct)) + geom_histogram()
+
+#Density Plot of Student Levels
+ggplot(data = percent_correct_student, aes(x=percent_correct)) + geom_density()
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
